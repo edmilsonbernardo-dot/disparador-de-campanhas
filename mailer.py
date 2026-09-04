@@ -1,5 +1,6 @@
 """Envio de e-mails via SMTP, com pixel de rastreamento embutido."""
 import smtplib
+import socket
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -10,6 +11,22 @@ import crypto_utils
 
 class SMTPNotConfigured(Exception):
     pass
+
+
+# Algumas plataformas de nuvem (ex.: Render) atribuem endereço IPv6 ao
+# container mas não têm rota de saída IPv6 funcional. O resolvedor padrão do
+# Python pode devolver o endereço IPv6 do Gmail primeiro e a conexão falha
+# com "[Errno 101] Network is unreachable" antes de tentar o IPv4. Forçamos
+# a resolução para IPv4 apenas (afeta só as conexões feitas por este
+# processo, e só o envio de e-mail usa rede externa aqui).
+_original_getaddrinfo = socket.getaddrinfo
+
+
+def _getaddrinfo_ipv4_only(host, port, family=0, type=0, proto=0, flags=0):
+    return _original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
+
+socket.getaddrinfo = _getaddrinfo_ipv4_only
 
 
 def build_tracking_pixel_html(base_url: str, token: str) -> str:
