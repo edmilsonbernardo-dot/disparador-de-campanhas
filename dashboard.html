@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+{% if not settings.is_configured %}
+<div class="alert alert-warning">
+  A caixa de e-mail de envio ainda não foi configurada.
+  <a href="{{ url_for('settings_view') }}">Configure agora</a> para poder disparar campanhas.
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Campanhas</h3>
+  <a href="{{ url_for('campaign_new') }}" class="btn btn-primary">+ Nova campanha</a>
+</div>
+
+{% if not campaigns %}
+<div class="card">
+  <div class="card-body text-center text-muted py-5">
+    Nenhuma campanha criada ainda. Clique em "Nova campanha" para começar.
+  </div>
+</div>
+{% else %}
+<div class="table-responsive">
+<table class="table table-hover align-middle bg-white">
+  <thead>
+    <tr>
+      <th>Campanha</th>
+      <th>Status</th>
+      <th>Disparo</th>
+      <th class="text-end">Contatos</th>
+      <th class="text-end">Enviados</th>
+      <th class="text-end">Abertos</th>
+      <th class="text-end">Taxa de abertura</th>
+      <th class="text-end">Seguimentos</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in campaigns %}
+    <tr onclick="window.location='{{ url_for('campaign_detail', campaign_id=c.id) }}'" style="cursor:pointer">
+      <td>{{ c.name }}</td>
+      <td>
+        <span class="badge
+          {% if c.status == 'sent' %}bg-success
+          {% elif c.status == 'sending' %}bg-info text-dark
+          {% else %}bg-secondary{% endif %}">
+          {{ {'scheduled': 'Agendada', 'sending': 'Enviando', 'sent': 'Enviada'}.get(c.status, c.status) }}
+        </span>
+      </td>
+      <td>{{ c.scheduled_at.strftime('%d/%m/%Y %H:%M') }}</td>
+      <td class="text-end">{{ c.total_contacts }}</td>
+      <td class="text-end">{{ c.total_sent }}</td>
+      <td class="text-end">{{ c.total_opened }}</td>
+      <td class="text-end">{{ c.open_rate }}%</td>
+      <td class="text-end">{{ c.total_followup_sent }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+{% endblock %}

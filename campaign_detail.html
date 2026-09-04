@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ campaign.name }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h3 class="mb-1">{{ campaign.name }}</h3>
+    <div class="text-muted">Assunto: {{ campaign.subject }}</div>
+  </div>
+  <div class="text-end">
+    <span class="badge
+      {% if campaign.status == 'sent' %}bg-success
+      {% elif campaign.status == 'sending' %}bg-info text-dark
+      {% else %}bg-secondary{% endif %} fs-6">
+      {{ {'scheduled': 'Agendada', 'sending': 'Enviando', 'sent': 'Enviada'}.get(campaign.status, campaign.status) }}
+    </span>
+    <div class="text-muted small mt-1">Disparo: {{ campaign.scheduled_at.strftime('%d/%m/%Y %H:%M') }} (UTC)</div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card text-center"><div class="card-body">
+      <div class="fs-3 fw-bold">{{ campaign.total_contacts }}</div>
+      <div class="text-muted small">Contatos</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center"><div class="card-body">
+      <div class="fs-3 fw-bold">{{ campaign.total_sent }}</div>
+      <div class="text-muted small">Enviados</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center"><div class="card-body">
+      <div class="fs-3 fw-bold">{{ campaign.total_opened }}</div>
+      <div class="text-muted small">Abertos ({{ campaign.open_rate }}%)</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center"><div class="card-body">
+      <div class="fs-3 fw-bold">{{ campaign.total_followup_sent }}</div>
+      <div class="text-muted small">Seguimentos enviados</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="progress mb-4" style="height: 24px;">
+  <div class="progress-bar bg-success" style="width: {{ campaign.open_rate }}%">
+    {{ campaign.open_rate }}% abertos
+  </div>
+</div>
+
+<div class="d-flex gap-2 mb-3">
+  <form method="post" action="{{ url_for('campaign_send_now', campaign_id=campaign.id) }}"
+        onsubmit="return confirm('Disparar esta campanha agora para os contatos ainda não enviados?');">
+    <button type="submit" class="btn btn-sm btn-outline-primary" {% if campaign.status == 'sent' %}disabled{% endif %}>
+      Disparar agora
+    </button>
+  </form>
+  <form method="post" action="{{ url_for('campaign_delete', campaign_id=campaign.id) }}"
+        onsubmit="return confirm('Excluir esta campanha e todos os seus dados de contato?');">
+    <button type="submit" class="btn btn-sm btn-outline-danger">Excluir campanha</button>
+  </form>
+</div>
+
+<div class="table-responsive">
+<table class="table table-sm table-hover bg-white">
+  <thead>
+    <tr>
+      <th>Nome</th>
+      <th>E-mail</th>
+      <th>Status</th>
+      <th>Enviado em</th>
+      <th>Aberto em</th>
+      <th class="text-end">Nº de aberturas</th>
+      <th>Seguimento enviado em</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in contacts %}
+    <tr>
+      <td>{{ c.name }}</td>
+      <td>{{ c.email }}</td>
+      <td>
+        {% if c.send_error %}
+          <span class="badge bg-danger" title="{{ c.send_error }}">Erro no envio</span>
+        {% else %}
+          <span class="badge bg-light text-dark border">{{ c.status_label }}</span>
+        {% endif %}
+      </td>
+      <td>{{ c.sent_at.strftime('%d/%m %H:%M') if c.sent_at else '—' }}</td>
+      <td>{{ c.opened_at.strftime('%d/%m %H:%M') if c.opened_at else '—' }}</td>
+      <td class="text-end">{{ c.open_count or 0 }}</td>
+      <td>{{ c.followup_sent_at.strftime('%d/%m %H:%M') if c.followup_sent_at else '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endblock %}

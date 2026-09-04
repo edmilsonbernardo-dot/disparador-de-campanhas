@@ -1,0 +1,22 @@
+# Configuração opcional para deploy automático no Render (render.com).
+# Em "New +", escolha "Blueprint" e aponte para o repositório com este arquivo.
+services:
+  - type: web
+    name: disparador-de-campanhas
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 1 --threads 4 -b 0.0.0.0:$PORT app:app
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: BASE_URL
+        sync: false
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/instance
+      sizeGB: 1

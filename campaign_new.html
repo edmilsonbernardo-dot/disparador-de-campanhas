@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Nova campanha{% endblock %}
+{% block content %}
+
+<h3 class="mb-3">Nova campanha</h3>
+
+<form method="post" enctype="multipart/form-data">
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">1. Contatos</h5>
+      <label class="form-label">Arquivo CSV (colunas "nome" e "email")</label>
+      <input type="file" name="csv_file" accept=".csv" class="form-control" required>
+      <div class="form-text">
+        O arquivo deve ter um cabeçalho com colunas de nome e e-mail (aceita "nome"/"name" e
+        "email"/"e-mail", em qualquer ordem). Linhas com e-mail inválido ou duplicado são
+        ignoradas automaticamente.
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">2. E-mail principal</h5>
+      <div class="mb-3">
+        <label class="form-label">Nome da campanha (uso interno)</label>
+        <input type="text" name="name" class="form-control" value="{{ form.get('name', '') }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Assunto</label>
+        <input type="text" name="subject" class="form-control" value="{{ form.get('subject', '') }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Corpo do e-mail (HTML)</label>
+        <textarea name="body_html" rows="10" class="form-control" required>{{ form.get('body_html', '') }}</textarea>
+        <div class="form-text">Use <code>{{ '{{nome}}' }}</code> no texto para inserir o nome do contato automaticamente.</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Data e hora do disparo</label>
+        <input type="datetime-local" name="scheduled_at" class="form-control" style="max-width: 280px" value="{{ form.get('scheduled_at', '') }}" required>
+        <div class="form-text">Horário do servidor (UTC). Ajuste considerando o fuso de São Paulo (UTC-3): some 3 horas ao horário desejado.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">3. Seguimento automático quando o contato abrir o e-mail</h5>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="followup_enabled" id="followup_enabled"
+          {% if form.get('followup_enabled') %}checked{% endif %} onchange="document.getElementById('followup-fields').classList.toggle('d-none', !this.checked)">
+        <label class="form-check-label" for="followup_enabled">
+          Enviar um e-mail de seguimento automaticamente quando o destinatário abrir este e-mail
+        </label>
+      </div>
+      <div id="followup-fields" class="{% if not form.get('followup_enabled') %}d-none{% endif %}">
+        <div class="mb-3">
+          <label class="form-label">Assunto do seguimento</label>
+          <input type="text" name="followup_subject" class="form-control" value="{{ form.get('followup_subject', '') }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Corpo do seguimento (HTML)</label>
+          <textarea name="followup_body_html" rows="6" class="form-control">{{ form.get('followup_body_html', '') }}</textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Atraso após a abertura (minutos)</label>
+          <input type="number" name="followup_delay_minutes" class="form-control" style="max-width: 160px" value="{{ form.get('followup_delay_minutes', 10) }}" min="0">
+          <div class="form-text">
+            Um pequeno atraso evita disparar o seguimento por causa de pré-carregamento automático de
+            imagens que alguns provedores de e-mail fazem (o que pode registrar uma "abertura" falsa).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Criar campanha</button>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+
+{% endblock %}

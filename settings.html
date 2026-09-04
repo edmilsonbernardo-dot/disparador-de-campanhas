@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Configurações{% endblock %}
+{% block content %}
+
+<h3 class="mb-3">Configuração da caixa de envio</h3>
+
+<div class="alert alert-info">
+  Para usar o Gmail, gere uma <strong>senha de app</strong> em
+  <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a>
+  (é necessário ter a verificação em duas etapas ativada). Não use a senha normal da sua conta Google.
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="post">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Nome do remetente</label>
+          <input type="text" name="sender_name" class="form-control" value="{{ settings.sender_name or '' }}" placeholder="Ex: Edmilson - Solux">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">E-mail do remetente</label>
+          <input type="email" name="sender_email" class="form-control" value="{{ settings.sender_email or '' }}" required placeholder="voce@gmail.com">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Servidor SMTP</label>
+          <input type="text" name="smtp_host" class="form-control" value="{{ settings.smtp_host or 'smtp.gmail.com' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Porta</label>
+          <input type="number" name="smtp_port" class="form-control" value="{{ settings.smtp_port or 587 }}">
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="use_tls" id="use_tls" {% if settings.use_tls %}checked{% endif %}>
+            <label class="form-check-label" for="use_tls">Usar TLS</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Usuário SMTP (geralmente seu e-mail)</label>
+          <input type="text" name="smtp_user" class="form-control" value="{{ settings.smtp_user or '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Senha de app</label>
+          <input type="password" name="smtp_password" class="form-control" placeholder="{% if settings.smtp_password_encrypted %}•••••••• (deixe em branco para manter){% else %}sua senha de app{% endif %}">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-4">Salvar configurações</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Enviar e-mail de teste</h5>
+    <form method="post" action="{{ url_for('settings_test') }}" class="row g-2">
+      <div class="col-md-8">
+        <input type="email" name="test_email" class="form-control" placeholder="seuoutroemail@exemplo.com" required>
+      </div>
+      <div class="col-md-4">
+        <button type="submit" class="btn btn-outline-primary w-100">Enviar teste</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
